@@ -41,6 +41,66 @@ public class Day02 : BaseDay
         return new(partialIdSum.ToString());
     }
 
+    public override ValueTask<string> Solve_2()
+    {
+        var partialProductSum = (long)0;
+
+        foreach (var line in input)
+        {
+            var currentGameId = ParseGameId(line);
+            if (currentGameId == -1)
+            {
+                break;
+            }
+
+            var currentGame = ParseGame(line);
+
+            var currentGameMinimalSet = GetMinimalGameSet(currentGame);
+
+            var partialProduct = (long) 1;
+            foreach (var value in currentGameMinimalSet.Values)
+            {
+                partialProduct *= value;
+            }
+
+            partialProductSum += partialProduct;
+        }
+
+        return new(partialProductSum.ToString());
+    }
+
+    private IDictionary<Cube, int> GetMinimalGameSet(IList<IDictionary<Cube, int>> currentGame)
+    {
+        var minimalRed = 0;
+        var minimalGreen = 0;
+        var minimalBlue = 0;
+
+        foreach (var set in currentGame) 
+        {
+            if (set.TryGetValue(Cube.red, out var drawnValue))
+            {
+                minimalRed = Math.Max(drawnValue, minimalRed);
+            }
+
+            if (set.TryGetValue(Cube.green, out drawnValue))
+            {
+                minimalGreen = Math.Max(drawnValue, minimalGreen);
+            }
+
+            if (set.TryGetValue(Cube.blue, out drawnValue))
+            {
+                minimalBlue = Math.Max(drawnValue, minimalBlue);
+            }
+        }
+
+        return new Dictionary<Cube, int>
+        {
+            { Cube.red, minimalRed },
+            { Cube.green, minimalGreen },
+            { Cube.blue, minimalBlue },
+        };
+    }
+
     private static bool ValidateGame(IList<IDictionary<Cube, int>> currentGame)
     {
         const long maxRed = 12;
@@ -133,11 +193,6 @@ public class Day02 : BaseDay
         return Cube.blue;        
     }
 
-    public override ValueTask<string> Solve_2()
-    {
-        
-
-        return new("not solved");
-    }
+    
 }
 
