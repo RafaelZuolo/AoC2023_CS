@@ -133,6 +133,62 @@ public class Day03 : BaseDay
 
     public override ValueTask<string> Solve_2()
     {
-        return new("Waiting to be solved");
+        var numbers = new List<Number>();
+        for (var i = 0; i < input.Count; i++)
+        {
+            for (var j = 0; j < input[i].Length; j++)
+            {
+                if (input[i][j] != '.' && IsNumber(input[i][j]))
+                {
+                    var lastNumberIndex = GetLastIndexOf(input[i], j);
+                    var number = ParseNumber(input[i], j, lastNumberIndex);
+                    numbers.Add(new Number(number, i, j, lastNumberIndex));
+                    j = lastNumberIndex + 1;
+                }
+            }
+        }
+
+        var partialSum = (long)0;
+        for (var i = 0; i < input.Count; i++)
+        {
+            for (var j = 0; j < input[i].Length; j++)
+            {
+                if (input[i][j] == '*')
+                {
+                    partialSum += GearRation(i, j, numbers);
+                }
+            }
+        }
+
+        return new(partialSum.ToString());
     }
+
+    private long GearRation(int i, int j, List<Number> numbers)
+    {
+        var partialProduct = (long)1;
+        var numberOfNeighbours = 0;
+        foreach(var number in numbers)
+        {
+            if (number.I - 1 <= i && i <= number.I + 1
+                && number.J - 1 <= j && j <= number.LastNumberIndex + 1)
+            {
+                if (numberOfNeighbours == 2)
+                {
+                    return 0;
+                }
+                numberOfNeighbours++;
+
+                partialProduct *= number.Value;
+            }
+        }
+
+        if (numberOfNeighbours != 2)
+        {
+            return 0;
+        }
+
+        return partialProduct;
+    }
+
+    public record Number(int Value, int I, int J, int LastNumberIndex);   
 }
