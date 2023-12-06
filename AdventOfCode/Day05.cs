@@ -81,7 +81,141 @@ public class Day05 : BaseDay
 
     public override ValueTask<string> Solve_2()
     {
+        var reinterpretedSeeds = ParseSeeds(seeds);
+
+        var composedMappings = ComposeMap(seedToSoil, reinterpretedSeeds);
+        
         return new ValueTask<string>("foo");
     }
 
+    private static IList<BasicMap> ApplyMapToRange(IList<BasicMap> mapList, BasicMap firstMap)
+    {
+        var rangeMapping = new List<BasicMap>();
+        foreach (var secondMap in mapList)
+        {
+            if (secondMap.DomainEnd < firstMap.ImageStart || firstMap.ImageEnd < secondMap.DomainStart)
+            {
+                rangeMapping.Add(secondMap);
+            }
+            
+            else if (firstMap.ImageStart < secondMap.DomainStart && secondMap.DomainEnd < firstMap.ImageEnd)
+            {
+                var firstPartLength = secondMap.DomainStart - firstMap.ImageStart;                
+                rangeMapping.Add(new(
+                    firstMap.DomainStart,
+                    firstMap.DomainStart + (firstPartLength - 1),
+                    firstMap.ImageStart,
+                    firstMap.ImageStart + (firstPartLength - 1)));
+
+                rangeMapping.Add(new(
+                    firstMap.DomainStart + firstPartLength,
+                    firstMap.DomainStart + (secondMap.DomainEnd - secondMap.DomainStart),
+                    secondMap.ImageStart,
+                    secondMap.ImageEnd));
+
+                var thirdPartLength = firstMap.ImageEnd - secondMap.DomainEnd;
+                rangeMapping.Add(new(
+                    firstMap.DomainEnd - thirdPartLength + 1,
+                    firstMap.DomainEnd,
+                    firstMap.ImageEnd - thirdPartLength + 1,
+                    firstMap.ImageEnd));
+            }
+
+            else if (secondMap.DomainStart < firstMap.ImageStart && firstMap.ImageEnd < secondMap.DomainEnd)
+            {
+                var firstPartLength = firstMap.ImageStart - secondMap.DomainStart;
+                rangeMapping.Add(new(
+                    secondMap.DomainStart,
+                    secondMap.DomainStart + (firstPartLength - 1),
+                    secondMap.ImageStart,
+                    secondMap.ImageStart + (firstPartLength - 1)));
+
+                var secondPartLenght = firstMap.ImageEnd - firstMap.ImageStart + 1; // length of firstMap
+                rangeMapping.Add(new(
+                    firstMap.DomainStart,
+                    firstMap.DomainEnd,
+                    secondMap.ImageStart + firstPartLength,
+                    secondMap.ImageStart + firstPartLength + secondPartLenght));
+
+                var thirdPartLength = secondMap.DomainEnd - firstMap.ImageEnd;
+                rangeMapping.Add(new(
+                    secondMap.DomainEnd - thirdPartLength + 1,
+                    secondMap.DomainEnd,
+                    secondMap.ImageEnd - thirdPartLength + 1,
+                    secondMap.ImageEnd));
+            }
+
+            else if (secondMap.DomainStart <= firstMap.ImageStart && secondMap.DomainEnd < firstMap.ImageEnd)
+            {
+                // TODO
+                var firstPartLength = firstMap.ImageStart - secondMap.DomainStart;
+                rangeMapping.Add(new(
+                    secondMap.DomainStart,
+                    secondMap.DomainStart + (firstPartLength - 1),
+                    secondMap.ImageStart,
+                    secondMap.ImageStart + (firstPartLength - 1)));
+
+                var secondPartLenght = firstMap.ImageEnd - firstMap.ImageStart + 1; // length of firstMap
+                rangeMapping.Add(new(
+                    firstMap.DomainStart,
+                    firstMap.DomainEnd,
+                    secondMap.ImageStart + firstPartLength,
+                    secondMap.ImageStart + firstPartLength + secondPartLenght));
+
+                var thirdPartLength = secondMap.DomainEnd - firstMap.ImageEnd;
+                rangeMapping.Add(new(
+                    secondMap.DomainEnd - thirdPartLength + 1,
+                    secondMap.DomainEnd,
+                    secondMap.ImageEnd - thirdPartLength + 1,
+                    secondMap.ImageEnd));
+            }
+
+            else if ( firstMap.ImageStart <= secondMap.DomainStart && firstMap.ImageEnd < secondMap.DomainEnd)
+            {
+                // TODO
+                var firstPartLength = firstMap.ImageStart - secondMap.DomainStart;
+                rangeMapping.Add(new(
+                    secondMap.DomainStart,
+                    secondMap.DomainStart + (firstPartLength - 1),
+                    secondMap.ImageStart,
+                    secondMap.ImageStart + (firstPartLength - 1)));
+
+                var secondPartLenght = firstMap.ImageEnd - firstMap.ImageStart + 1; // length of firstMap
+                rangeMapping.Add(new(
+                    firstMap.DomainStart,
+                    firstMap.DomainEnd,
+                    secondMap.ImageStart + firstPartLength,
+                    secondMap.ImageStart + firstPartLength + secondPartLenght));
+
+                var thirdPartLength = secondMap.DomainEnd - firstMap.ImageEnd;
+                rangeMapping.Add(new(
+                    secondMap.DomainEnd - thirdPartLength + 1,
+                    secondMap.DomainEnd,
+                    secondMap.ImageEnd - thirdPartLength + 1,
+                    secondMap.ImageEnd));
+            }
+
+            var result = secondMap.ApplyMap(firstMap.ImageStart);
+            if (result != firstMap.ImageStart)
+            {
+                return result;
+            }
+        }
+
+        return firstMap;
+    }
+
+    private IList<BasicMap> ParseSeeds(IList<long> seeds)
+    {
+        var seedMapping = new List<BasicMap>();
+        for (var i = 0; i < seeds.Count; i += 2)
+        {
+            var firstSeed = seeds[i];
+            var numberOfSeeds = seeds[i + 1] - 1;
+
+            seedMapping.Add(new(firstSeed, numberOfSeeds, firstSeed, numberOfSeeds));
+        }
+
+        return seedMapping;
+    }
 }
