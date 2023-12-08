@@ -1,5 +1,4 @@
-﻿
-namespace AdventOfCode;
+﻿namespace AdventOfCode;
 
 public class Day07 : BaseDay
 {
@@ -9,7 +8,8 @@ public class Day07 : BaseDay
     public Day07()
     {
         input = File.ReadAllText(InputFilePath).Split("\r\n", StringSplitOptions.RemoveEmptyEntries);
-        hands = input.Select(line => {
+        hands = input.Select(line =>
+        {
             var lineSplitted = line.Split(' ');
             return new CamelHand(lineSplitted[0].ToCharArray(), long.Parse(lineSplitted[1]));
         }).ToList();
@@ -31,15 +31,15 @@ public class Day07 : BaseDay
         public char[] Hand { get; set; } = hand;
         public long Bid { get; set; } = bid;
 
-        public virtual HandType GetHandType() 
-        { 
+        public virtual HandType GetHandType()
+        {
             if (IsFiveOfAKind()) { return HandType.FiveOfAKind; }
             if (IsFourOfAKind()) { return HandType.FourOfAKind; }
             if (IsFullHouse()) { return HandType.FullHouse; }
             if (IsThreeOfAKind()) { return HandType.ThreeOfAKind; }
             if (IsTwoPair()) { return HandType.TwoPair; }
             if (IsOnePair()) { return HandType.OnePair; }
-            return HandType.HighCard; 
+            return HandType.HighCard;
         }
 
         public bool IsFiveOfAKind()
@@ -117,7 +117,7 @@ public class Day07 : BaseDay
         }
 
         internal virtual int CompareCard(char a, char b)
-        {// A, K, Q, J, T
+        {
             if (a <= '9' || b <= '9')
             {
                 return a.CompareTo(b);
@@ -178,11 +178,12 @@ public class Day07 : BaseDay
 
     public override ValueTask<string> Solve_2()
     {
-        var jokerHands = hands.Select(h => new JokerCamelHand(h.Hand, h.Bid));
-        var jokerHandsTypes = jokerHands.Select(h => h.GetHandType());
+        var jokerHands = hands.Select(h => new JokerCamelHand(h.Hand, h.Bid)).ToArray();
+        var test = jokerHands[1].CompareTo(jokerHands[3]);
         var orderedHands = jokerHands.Order().ToArray();
 
         var result = (long)0;
+
 
         for (var i = 0; i < orderedHands.Length; i++)
         {
@@ -227,11 +228,14 @@ public class Day07 : BaseDay
 
             var highestCard = '-';
             var highestCardCount = 0;
-            foreach (var card in Hand) 
+            foreach (var card in Hand)
             {
-                highestCard = Hand.Count(c => c == card) > highestCardCount
-                    && card != 'J'
-                    ? card : highestCard;
+                var partialCount = Hand.Count(c => c == card);
+                if (partialCount > highestCardCount && card != 'J')
+                {
+                    highestCard = card;
+                    highestCardCount = partialCount;
+                }
             }
 
             var notJokerHand = Hand.Select(c => c == 'J' ? highestCard : c).ToArray();
