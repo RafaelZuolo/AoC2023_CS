@@ -35,12 +35,12 @@ public class Day08 : BaseDay
         var currentStep = 0;
         var currentnode = nodes.First(n => n.Label == "AAA");
 
-        while (currentnode.Label != "ZZZ") 
+        while (currentnode.Label != "ZZZ")
         {
             numberOfSteps++;
             var step = instructions[currentStep++];
 
-            if (step == 'L') 
+            if (step == 'L')
             {
                 currentnode = currentnode.Left;
             }
@@ -54,13 +54,94 @@ public class Day08 : BaseDay
                 currentStep = 0;
             }
         }
-        
+
         return new ValueTask<string>(numberOfSteps.ToString());
     }
 
     public override ValueTask<string> Solve_2()
     {
-        return new ValueTask<string>();
+        var numberOfSteps = 0;
+        var currentStep = 0;
+        var currentNodes = nodes.Where(n => n.Label.EndsWith('A')).ToArray();
+        var distancesToZ = currentNodes.Select(n => 0).ToArray();
+
+        while (AllDistancesAreSet(distancesToZ))
+        {
+            numberOfSteps++;
+            var step = instructions[currentStep++];
+
+            if (step == 'L')
+            {
+                currentNodes = currentNodes.Select(n => n.Left).ToArray();
+            }
+            else
+            {
+                currentNodes = currentNodes.Select(n => n.Right).ToArray();
+            }
+
+            SetDistancesToZ(numberOfSteps, currentNodes, distancesToZ);
+
+            if (currentStep == instructions.Length)
+            {
+                currentStep = 0;
+            }
+        }
+
+        return new(CalculateMMC(distancesToZ).ToString());
+    }
+
+    private long CalculateMMC(int[] distancesToZ)
+    {
+        if (distancesToZ.Length > 2)
+        {
+            return CalculateMMC(distancesToZ[0], CalculateMMC(distancesToZ.Skip(1).ToArray()));
+        }
+
+        return CalculateMMC(distancesToZ[0], distancesToZ[1]);
+    }
+
+    private long CalculateMMC(long v1, long v2)
+    {
+        var mdc = CalculateMDC([v1, v2]);
+
+        return v1 * v2 / mdc;
+    }
+
+    private long CalculateMDC(long[] distancesToZ)
+    {
+        if (distancesToZ.Length > 2)
+        {
+            return CalculateMDC(distancesToZ[0], CalculateMDC(distancesToZ.Skip(1).ToArray()));
+        }
+
+        return CalculateMDC(distancesToZ[0], distancesToZ[1]);
+    }
+
+    private long CalculateMDC(long x, long y)
+    {
+        while (x != 0)
+        {
+            var w = x;
+            x = y % x;
+            y = w;
+        }
+
+        return y;
+    }
+
+    private void SetDistancesToZ(int numberOfSteps, Node[] currentNodes, int[] distancesToZ)
+    {
+        for (int i = 0; i < currentNodes.Length; i++)
+        {
+            distancesToZ[i] = distancesToZ[i] != 0 
+                ? distancesToZ[i] 
+                : currentNodes[i].Label.EndsWith('Z') ? numberOfSteps : 0;
+        }
+    }
+
+    private bool AllDistancesAreSet(int[] distancesToZ)
+    {
+        return !distancesToZ.All(d => d != 0);
     }
 
     private record Node(string Label, string LeftLabel, string RightLabel)
